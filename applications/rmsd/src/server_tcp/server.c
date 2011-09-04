@@ -1,21 +1,21 @@
 /*
-server.c: Molecular Biology ++ Implementation file.
+server.c:
     Copyright (C) 2011 Martin Ramiro Gioiosa, FuDePAN
 
-    This file is part of Biopp.
+    This file is part of the F2F project.
 
-    Biopp is free software: you can redistribute it and/or modify
+    F2F is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Biopp is distributed in the hope that it will be useful,
+    F2F is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Biopp.  If not, see <http://www.gnu.org/licenses/>.
+    along with F2F.  If not, see <http://www.gnu.org/licenses/>.
 
     NOTE: This file is in prototype stage, and is under active development.
 */
@@ -24,6 +24,7 @@ server.c: Molecular Biology ++ Implementation file.
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -36,15 +37,66 @@ server.c: Molecular Biology ++ Implementation file.
 /*********************************************/
 
 
-/**** TYPEDEFS *******************************/
-typedef FloatType       rvec[DIM];
-typedef DoubleType      dvec[DIM];
-typedef FloatType       matrix[DIM][DIM];
-/*********************************************/
+static int read_socket(const int sock, char* data, const int lenght)
+{
+    int ret = -1;
+
+    if (data != NULL && lenght > 0)
+    {
+    	int acum = 0;
+    	int result;
+
+    	do
+    	{
+            result = read(sock, data + acum, lenght - acum);
+            if (result > 0)
+            {
+                acum += result;
+            }
+    	}
+    	while (result > 0);
+
+    	if (result == 0)
+    	{
+    		ret = acum;
+    	}
+    }
+
+    return ret;
+}
+
+
+static int write_socket(const int sock, char* data, const int lenght)
+{
+    int ret = -1;
+
+    if (data != NULL && lenght > 0)
+    {
+    	int acum = 0;
+
+    	int result;
+    	do
+    	{
+            result = write(sock, data + acum, lenght - acum);
+            if (result > 0)
+            {
+                acum += result;
+            }
+    	}
+    	while (result > 0);
+
+    	if (result == 0)
+    	{
+    		ret = acum;
+    	}
+    }
+
+    return ret;
+}
 
 
 /**** AUXILIAR METHODS ***********************/
-void rotate(DoubleType a[][6], size_t i, size_t j, size_t k, size_t l, DoubleType tau, DoubleType s)
+static void rotate(DoubleType a[][6], size_t i, size_t j, size_t k, size_t l, DoubleType tau, DoubleType s)
 {
     const DoubleType g = a[i][j];
     const DoubleType h = a[k][l];
@@ -53,35 +105,35 @@ void rotate(DoubleType a[][6], size_t i, size_t j, size_t k, size_t l, DoubleTyp
     a[k][l] = add(h, multiply(s, (sub(g, multiply(h, tau)))));
 }
 
-void clear_mat(matrix a)
+static void clear_mat(matrix a)
 {
     a[0][0] = a[0][1] = a[0][2] = constant_f_0_0;
     a[1][0] = a[1][1] = a[1][2] = constant_f_0_0;
     a[2][0] = a[2][1] = a[2][2] = constant_f_0_0;
 }
 
-void oprod(const rvec a, const rvec b, rvec c)
+static void oprod(const rvec a, const rvec b, rvec c)
 {
     c[0] = sub(multiply(a[1], b[2]), multiply(a[2], b[1]));
     c[1] = sub(multiply(a[2], b[0]), multiply(a[0], b[2]));
     c[2] = sub(multiply(a[0], b[1]), multiply(a[1], b[0]));
 }
 
-void Coord3D2rvec(const Coord3d* coord3d, rvec rv)
+static void Coord3D2rvec(const Coord3d* coord3d, rvec rv)
 {
     rv[0] = coord3d->x;
     rv[1] = coord3d->y;
     rv[2] = coord3d->z;
 }
 
-void rvec2Coord3D(const rvec rv, Coord3d* coord3d)
+static void rvec2Coord3D(const rvec rv, Coord3d* coord3d)
 {
     coord3d->x = rv[0];
     coord3d->y = rv[1];
     coord3d->z = rv[2];
 }
 
-void structure2rvec_arr(const Coord3d* coord3d, const size_t num_elements, rvec* ret)
+static void structure2rvec_arr(const Coord3d* coord3d, const size_t num_elements, rvec* ret)
 {
     size_t i;
     for (i = 0; i < num_elements; ++i)
@@ -92,7 +144,7 @@ void structure2rvec_arr(const Coord3d* coord3d, const size_t num_elements, rvec*
 
 
 /**** MAIN METHODS ***************************/
-void jacobi(DoubleType a[][JACOBI_DIM], DoubleType d[], DoubleType v[][JACOBI_DIM])
+static void jacobi(DoubleType a[][JACOBI_DIM], DoubleType d[], DoubleType v[][JACOBI_DIM])
 {
     DoubleType b [JACOBI_DIM];
     DoubleType z [JACOBI_DIM];
@@ -205,7 +257,7 @@ void jacobi(DoubleType a[][JACOBI_DIM], DoubleType d[], DoubleType v[][JACOBI_DI
     }
 }
 
-void calc_fit_R(const size_t num_coords, FloatType *w_rls, rvec *xp, rvec *x, matrix R)
+static void calc_fit_R(const size_t num_coords, FloatType *w_rls, rvec *xp, rvec *x, matrix R)
 {
     const size_t DIM_DOUBLE = 2 * DIM;
 
@@ -307,7 +359,7 @@ void calc_fit_R(const size_t num_coords, FloatType *w_rls, rvec *xp, rvec *x, ma
     }
 }
 
-void do_fit(const size_t num_coords, FloatType *w_rls, rvec *xp, rvec *x)
+static void do_fit(const size_t num_coords, FloatType *w_rls, rvec *xp, rvec *x)
 {
     matrix R;
 
@@ -336,7 +388,7 @@ void do_fit(const size_t num_coords, FloatType *w_rls, rvec *xp, rvec *x)
     }
 }
 
-void rotalign_to(Coord3d* first, const Coord3d* second, const size_t num_coords)
+static void rotalign_to(Coord3d* first, const Coord3d* second, const size_t num_coords)
 {
     rvec vt[MAX_COORDS];
     rvec vr[MAX_COORDS];
@@ -356,7 +408,7 @@ void rotalign_to(Coord3d* first, const Coord3d* second, const size_t num_coords)
         rvec2Coord3D(vt[i], &first[i]);
 }
 
-FloatType rmsd_to(Coord3d* first, const Coord3d* second, const size_t num_coords)
+static FloatType rmsd_to(Coord3d* first, const Coord3d* second, const size_t num_coords)
 {
     FloatType ret = constant_f_0_0;
 
@@ -375,7 +427,7 @@ FloatType rmsd_to(Coord3d* first, const Coord3d* second, const size_t num_coords
 /*********************************************/
 
 
-void process_packet(BufferClient* inpacket, BufferServer* outpacket)
+static void process_packet(BufferClient* inpacket, BufferServer* outpacket)
 {
     const size_t sizeOfStructures = inpacket->numberOfCoords * 3 * sizeof(FloatType);
 
@@ -403,10 +455,10 @@ void process_packet(BufferClient* inpacket, BufferServer* outpacket)
 
 int main(void)
 {
-    const int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock < 0)
+    const int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    if (sock == -1)
     {
-        printf ("Error creating socket");
+        printf ("Error creating socket\n");
         exit(EXIT_FAILURE);
     }
 
@@ -417,23 +469,40 @@ int main(void)
     socklen_t address_len = sizeof(sa);
 
     const int b = bind(sock, (struct sockaddr*)&sa, sizeof(sa));
-    if (b < 0)
+    if (b == -1)
     {
-        printf("Error bind failed");
+        printf("Error bind failed\n");
         close(sock);
         exit(EXIT_FAILURE);
     }
+
+    /* PREPARE FOR INCOMING CONNECTION */
+    const int list = listen(sock, 1);
+    if (list == -1)
+    {
+        printf("Error list failed\n");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }
+    /***********************************/
 
     BufferClient buffer_in;
     BufferServer buffer_out;
 
     while (1)
     {
-        printf ("Testing....\n");
+    	/* WAIT FOR CONNECT CLIENT */
+        printf ("Waiting for client...\n");
+        const int sock_client = accept(sock, (struct sockaddr*)&sa, &address_len);
+        if (sock_client == -1)
+        {
+            printf("Error accepting client\n");
+        }
+        /***************************/
 
         /* WAIT TO RECEIVE A PACKET */
-        const ssize_t bytes_rec = recvfrom(sock, &buffer_in, LENGHT_BUFFER, 0, (struct sockaddr*)&sa, &address_len);
-        if (bytes_rec < 0)
+        const int read = read_socket(sock_client, (char*)&buffer_in, LENGHT_BUFFER);
+        if (read == -1)
         {
             printf("Error receiving packet\n");
         }
@@ -444,10 +513,18 @@ int main(void)
         /**********************/
 
         /* SEND RESULTS */
-        const ssize_t bytes_sent = sendto(sock, &buffer_out, LENGHT_BUFFER, 0, (struct sockaddr*)&sa, sizeof(sa));
-        if (bytes_sent < 0)
+        const int write = write_socket(sock_client, (char*)&buffer_out, LENGHT_BUFFER);
+        if (write == -1)
         {
             printf("Error sending packet\n");
+        }
+        /****************/
+
+        /* END OF COMMUNICATION */
+        const int shutdn = shutdown(sock_client, SHUT_RDWR);
+        if (shutdn == -1)
+        {
+            printf("Error shutting down\n");
         }
         /****************/
     }

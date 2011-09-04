@@ -1,21 +1,21 @@
 /*
-client.c: Molecular Biology ++ Implementation file.
+client.c:
     Copyright (C) 2011 Martin Ramiro Gioiosa, FuDePAN
 
-    This file is part of Biopp.
+    This file is part of the F2F project.
 
-    Biopp is free software: you can redistribute it and/or modify
+    F2F is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Biopp is distributed in the hope that it will be useful,
+    F2F is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Biopp.  If not, see <http://www.gnu.org/licenses/>.
+    along with F2F.  If not, see <http://www.gnu.org/licenses/>.
 
     NOTE: This file is in prototype stage, and is under active development.
 */
@@ -205,7 +205,7 @@ int main(void)
     FloatType* pointer_results = (FloatType*)buffer_in.data;
     while (numberOfResults > 0)
     {
-        float result = current_to_float(*pointer_results);
+        const float result = current_to_float(*pointer_results);
         printf("RMSD: %.10f\n", result);
         --numberOfResults;
         ++pointer_results;

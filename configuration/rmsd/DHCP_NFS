@@ -1,0 +1,79 @@
+//////////////////
+/SERVICIO DE DHCP/
+//////////////////
+
+1)
+sudo apt-get install dhcp3-server
+
+2)
+sudo gedit /etc/default/dhcp3-server
+Contenido:
+INTERFACES="eth0"
+
+3)
+sudo gedit /etc/dhcp3/dhcpd.conf
+Contenido:
+allow bootp;
+allow booting;
+subnet 192.168.0.0 netmask 255.255.255.0 
+{
+default-lease-time 1209600; # two weeks
+max-lease-time 31557600; # one year
+group 
+{
+next-server 192.168.0.1; # IP address of TFTP server
+option routers 192.168.0.1; # Default gateway of the target
+host fpga 
+{
+#hardware ethernet 02:00:00:00:00:00;
+hardware ethernet 00:00:00:00:00:00;
+fixed-address 192.168.0.91;
+option root-path "/tftpboot/fudepan/rootfs";
+filename "pxelinux.0";
+}
+}
+}
+
+4)
+sudo Service dhcp3-server restart 
+
+
+
+/////////////////
+/SERVICIO DE NFS/
+/////////////////
+
+1)
+sudo apt-get install nfs-common nfs-kernel-server portmap
+
+2)
+sudo gedit /etc/exports
+Contenido:
+/tftpboot/fudepan/rootfs *(rw,sync,no_root_squash,no_all_squash,no_subtree_check)
+
+3)
+sudo gedit /etc/hosts.allow
+Contenido:
+portmap:192.168.0.
+nfs:192.168.0.
+
+4)
+sudo gedit /etc/hosts.deny
+Contenido:
+portmap:ALL
+
+5)
+sudo service nfs-kernel-server restart
+
+
+/////////////////
+/SERVICIO DE SSH/
+/////////////////
+logon as: root
+pass: l0r0coco o lorococo
+
+necesita:
+chmod 600 /tftpboot/fudepan/rootfs/etc/ssh_host_dsa_key
+chmod 600 /tftpboot/fudepan/rootfs/etc/ssh_host_rsa_key
+chmod 600 /tftpboot/fudepan/rootfs/etc/ssh_host_key
+chmod 755 /tftpboot/fudepan/rootfs/var/empty
