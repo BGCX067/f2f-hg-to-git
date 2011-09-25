@@ -103,16 +103,7 @@ typedef int64_t DoubleType;
 #define multiply(a, b)        (((a) * (b)) >> FRACBITS)
 #define divide(a, b)          (((a) << FRACBITS) / (b))
 
-
-FloatType fp_square_root(FloatType x)
-{
-    FloatType r = 1;
-
-    while (multiply(r, r) < x)
-        ++r;
-
-    return --r;
-}
+FloatType fp_square_root(FloatType x);
 
 //--> CONSTANTS
 #define constant_f_0_0        (0)

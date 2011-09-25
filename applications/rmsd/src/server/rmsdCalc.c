@@ -1,5 +1,5 @@
 /*
-server.c:
+rmsd_calc.c:
     Copyright (C) 2011 Martin Ramiro Gioiosa, FuDePAN
 
     This file is part of the F2F project.
@@ -21,78 +21,7 @@ server.c:
 */
 
 
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <errno.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <stdlib.h>
-
-
-/**** OWN HEADERS ****************************/
-#include "arithmetic.h"
-#include "communication.h"
-#include "types.h"
-/*********************************************/
-
-
-static int read_socket(const int sock, char* data, const int lenght)
-{
-    int ret = -1;
-
-    if (data != NULL && lenght > 0)
-    {
-    	int acum = 0;
-    	int result;
-
-    	do
-    	{
-            result = read(sock, data + acum, lenght - acum);
-            if (result > 0)
-            {
-                acum += result;
-            }
-    	}
-    	while (result > 0);
-
-    	if (result == 0)
-    	{
-    		ret = acum;
-    	}
-    }
-
-    return ret;
-}
-
-
-static int write_socket(const int sock, char* data, const int lenght)
-{
-    int ret = -1;
-
-    if (data != NULL && lenght > 0)
-    {
-    	int acum = 0;
-
-    	int result;
-    	do
-    	{
-            result = write(sock, data + acum, lenght - acum);
-            if (result > 0)
-            {
-                acum += result;
-            }
-    	}
-    	while (result > 0);
-
-    	if (result == 0)
-    	{
-    		ret = acum;
-    	}
-    }
-
-    return ret;
-}
+#include "rmsdCalc.h"
 
 
 /**** AUXILIAR METHODS ***********************/
@@ -142,8 +71,6 @@ static void structure2rvec_arr(const Coord3d* coord3d, const size_t num_elements
 /*********************************************/
 
 
-
-/**** MAIN METHODS ***************************/
 static void jacobi(DoubleType a[][JACOBI_DIM], DoubleType d[], DoubleType v[][JACOBI_DIM])
 {
     DoubleType b [JACOBI_DIM];
@@ -408,7 +335,7 @@ static void rotalign_to(Coord3d* first, const Coord3d* second, const size_t num_
         rvec2Coord3D(vt[i], &first[i]);
 }
 
-static FloatType rmsd_to(Coord3d* first, const Coord3d* second, const size_t num_coords)
+FloatType rmsd_to(Coord3d* first, const Coord3d* second, const size_t num_coords)
 {
     FloatType ret = constant_f_0_0;
 
@@ -423,111 +350,4 @@ static FloatType rmsd_to(Coord3d* first, const Coord3d* second, const size_t num
     ret = square_root(divide(ret, to_current(num_coords)));
 
     return ret;
-}
-/*********************************************/
-
-
-static void process_packet(BufferClient* inpacket, BufferServer* outpacket)
-{
-    const size_t sizeOfStructures = inpacket->numberOfCoords * 3 * sizeof(FloatType);
-
-    char* pointer_first_element = inpacket->data;
-    char* pointer_last_element = inpacket->data + sizeOfStructures * (inpacket->numberOfStructs - 1);
-    FloatType* pointer_results = (FloatType*)outpacket->data;
-
-    size_t numberOfResults = 0;
-
-    char* it1;
-    for (it1 = pointer_first_element; it1 < pointer_last_element; it1 += sizeOfStructures)
-    {
-        char* it2;
-        for (it2 = it1 + sizeOfStructures; it2 <= pointer_last_element; it2 += sizeOfStructures)
-        {
-            *pointer_results = rmsd_to((Coord3d*)it1, (Coord3d*)it2, inpacket->numberOfCoords);
-            ++pointer_results;
-            ++numberOfResults;
-        }
-    }
-
-    outpacket->numberOfResults = numberOfResults;
-}
-
-
-int main(void)
-{
-    const int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
-    if (sock == -1)
-    {
-        printf ("Error creating socket\n");
-        exit(EXIT_FAILURE);
-    }
-
-    struct sockaddr_in sa;
-    sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = INADDR_ANY;
-    sa.sin_port = htons(PORT);
-    socklen_t address_len = sizeof(sa);
-
-    const int b = bind(sock, (struct sockaddr*)&sa, sizeof(sa));
-    if (b == -1)
-    {
-        printf("Error bind failed\n");
-        close(sock);
-        exit(EXIT_FAILURE);
-    }
-
-    /* PREPARE FOR INCOMING CONNECTION */
-    const int list = listen(sock, 1);
-    if (list == -1)
-    {
-        printf("Error list failed\n");
-        close(sock);
-        exit(EXIT_FAILURE);
-    }
-    /***********************************/
-
-    BufferClient buffer_in;
-    BufferServer buffer_out;
-
-    while (1)
-    {
-    	/* WAIT FOR CONNECT CLIENT */
-        printf ("Waiting for client...\n");
-        const int sock_client = accept(sock, (struct sockaddr*)&sa, &address_len);
-        if (sock_client == -1)
-        {
-            printf("Error accepting client\n");
-        }
-        /***************************/
-
-        /* WAIT TO RECEIVE A PACKET */
-        const int read = read_socket(sock_client, (char*)&buffer_in, LENGHT_BUFFER);
-        if (read == -1)
-        {
-            printf("Error receiving packet\n");
-        }
-        /****************************/
-
-        /* PROCESS THE PACKET */
-        process_packet(&buffer_in, &buffer_out);
-        /**********************/
-
-        /* SEND RESULTS */
-        const int write = write_socket(sock_client, (char*)&buffer_out, LENGHT_BUFFER);
-        if (write == -1)
-        {
-            printf("Error sending packet\n");
-        }
-        /****************/
-
-        /* END OF COMMUNICATION */
-        const int shutdn = shutdown(sock_client, SHUT_RDWR);
-        if (shutdn == -1)
-        {
-            printf("Error shutting down\n");
-        }
-        /****************/
-    }
-
-    return EXIT_SUCCESS;
 }

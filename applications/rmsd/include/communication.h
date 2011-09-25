@@ -25,24 +25,41 @@ communication.h:
 #define COMMUNICATION_H_
 
 
-#define SERVER_IP             "127.0.0.1"
-#define PORT                  7654
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
-/* Lenght of buffers must be fixed by LENGHT_BUFFER */
-#define LENGHT_BUFFER         1490
+
+
+/**** COMMUNICATION **************************/
+#define SERVER_IP             "127.0.0.1"
+//#define SERVER_IP               "192.168.0.91"
+
+#define PORT                  7654
+/*********************************************/
+
+
+/**** BUFFERS ********************************/
+#define LENGHT_BUFFER         1496
+// Lenght of buffer must be fixed here
+
+#define LENGHT_DATA_CLIENT    LENGHT_BUFFER - 2 * sizeof(uint32_t)
+#define LENGHT_DATA_SERVER    LENGHT_BUFFER - sizeof(uint32_t)
 
 typedef struct
 {
-    size_t numberOfCoords;
-    size_t numberOfStructs;
-    char data[LENGHT_BUFFER - 2 * sizeof(size_t)];
+    uint32_t numberOfCoords;
+    uint32_t numberOfStructs;
+    char data[LENGHT_DATA_CLIENT];
 } BufferClient;
 
 typedef struct
 {
-    size_t numberOfResults;
-    char data[LENGHT_BUFFER - sizeof(size_t)];
+    uint32_t numberOfResults;
+    char data[LENGHT_DATA_SERVER];
 } BufferServer;
+/*********************************************/
 
 
 #endif /* COMMUNICATION_H_ */

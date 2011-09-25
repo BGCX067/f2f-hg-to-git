@@ -24,17 +24,22 @@ client.c:
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <stdint.h>
 
 
 /**** OWN HEADERS ****************************/
 #include "arithmetic.h"
 #include "communication.h"
 #include "types.h"
+#include "endianTool.h"
+#include "socketTool.h"
 /*********************************************/
+
 
 int validate_lenght_data(const size_t* numberOfCoords, const size_t* numberOfStructs)
 {
@@ -153,8 +158,8 @@ void load_process(BufferClient* buffer_out, const size_t* numberOfCoords, const 
 
 int main(void)
 {
-    const int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock < 0)
+    const int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    if (sock == -1)
     {
         printf("Error Creating Socket");
         exit(EXIT_FAILURE);
@@ -164,6 +169,13 @@ int main(void)
     sa.sin_family = AF_INET;
     sa.sin_addr.s_addr = inet_addr(SERVER_IP);
     sa.sin_port = htons(PORT);
+
+    const int con = connect(sock, (struct sockaddr*)&sa, sizeof(sa));
+    if (con == -1)
+    {
+        printf("Error Connecting Socket");
+        exit(EXIT_FAILURE);
+    }
 
     BufferServer buffer_in;
     BufferClient buffer_out;
@@ -183,22 +195,29 @@ int main(void)
     load_process(&buffer_out, &numberOfCoords, &numberOfStructs);
     /****************/
 
+    /* CONVERT */
+    endian_buffer_client(&buffer_out, hostToNetwork);
+    /***********/
+
     /* SEND A PACKET */
-    const ssize_t bytes_sent = sendto(sock, &buffer_out, LENGHT_BUFFER, 0, (struct sockaddr*)&sa, sizeof(struct sockaddr_in));
-    if (bytes_sent < 0)
+    const int write = write_socket(sock, (char*)&buffer_out, LENGHT_BUFFER);
+    if (write == -1)
     {
         printf("Error sending packet\n");
     }
     /*****************/
 
     /* WAIT TO RECEIVE */
-    socklen_t fromlen = sizeof(sa);
-    const ssize_t bytes_rec = recvfrom(sock, &buffer_in, LENGHT_BUFFER, 0, (struct sockaddr*)&sa, &fromlen);
-    if (bytes_rec < 0)
+    const int read = read_socket(sock, (char*)&buffer_in, LENGHT_BUFFER);
+    if (read == -1)
     {
         printf("Error receiving packet\n");
     }
     /*******************/
+
+    /* CONVERT */
+    endian_buffer_server(&buffer_in, networkToHost);
+    /***********/
 
     /* SHOW RESULTS */
     size_t numberOfResults = buffer_in.numberOfResults;
@@ -210,7 +229,7 @@ int main(void)
         --numberOfResults;
         ++pointer_results;
     }
-    /****************/
+    /***************/
 
     close(sock);
 

@@ -35,7 +35,7 @@ filename "pxelinux.0";
 }
 
 4)
-sudo Service dhcp3-server restart 
+sudo service dhcp3-server restart 
 
 
 
@@ -77,3 +77,11 @@ chmod 600 /tftpboot/fudepan/rootfs/etc/ssh_host_dsa_key
 chmod 600 /tftpboot/fudepan/rootfs/etc/ssh_host_rsa_key
 chmod 600 /tftpboot/fudepan/rootfs/etc/ssh_host_key
 chmod 755 /tftpboot/fudepan/rootfs/var/empty
+
+
+///////////////////
+/CONFIGURACION ETH/
+///////////////////
+
+
+sudo ethtool -s eth0 advertise 0x0F
