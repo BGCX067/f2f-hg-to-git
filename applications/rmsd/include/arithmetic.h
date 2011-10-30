@@ -27,19 +27,6 @@ arithmetic.h:
 
 /**** DEFINED BY USER ************************/
 #define USE_FIXED_POINT
-#define MAX_COORDS            (100)
-#define NUMBER_ITERATIONS     (3)
-/*********************************************/
-
-
-/**** ERRORS ***********************/
-#ifndef MAX_COORDS
-#error MAX COORDS not defined
-#endif
-
-#ifndef NUMBER_ITERATIONS
-#error NUMBER_ITERATIONS not defined
-#endif
 /*********************************************/
 
 

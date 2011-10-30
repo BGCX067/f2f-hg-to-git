@@ -42,40 +42,42 @@ void endian_buffer_server(BufferServer* buffer, const enum mode_conv mode);
 
 
 #ifdef USE_FLOATS
-#define __CONVERT_DATA\
-    const FloatType* end = data + lenght / sizeof(FloatType);\
-\
-    if (sizeof(FloatType) == 4)\
+#define convert_data()\
+    do\
     {\
+        const FloatType* end = data + lenght / sizeof(FloatType);\
+        \
         while (data < end)\
         {\
             convert(data, mode);\
             ++data;\
         }\
-    }
-#endif
-
-
-#ifdef USE_FIXED_POINT
-#define __CONVERT_DATA\
-    const FloatType* end = data + lenght / sizeof(FloatType);\
-    \
-    while (data < end)\
+    }\
+    while (0)
+#elif defined(USE_FIXED_POINT)
+#define convert_data()\
+    do\
     {\
-        uint32_t* data_low = (uint32_t*)data;\
-        uint32_t* data_high = (uint32_t*)data + 1;\
-    \
-        uint32_t low_32 = *data_low;\
-        uint32_t high_32 = *data_high;\
-    \
-        convert(&low_32, mode);\
-        convert(&high_32, mode);\
-    \
-        *data_low = high_32;\
-        *data_high = low_32;\
-    \
-        ++data;\
-    }
+        const FloatType* end = data + lenght / sizeof(FloatType);\
+        \
+        while (data < end)\
+        {\
+            uint32_t* data_low = (uint32_t*)data;\
+            uint32_t* data_high = (uint32_t*)data + 1;\
+        \
+            uint32_t low_32 = *data_low;\
+            uint32_t high_32 = *data_high;\
+        \
+            convert(&low_32, mode);\
+            convert(&high_32, mode);\
+        \
+            *data_low = high_32;\
+            *data_high = low_32;\
+        \
+            ++data;\
+        }\
+    }\
+    while (0)
 #endif
 
 

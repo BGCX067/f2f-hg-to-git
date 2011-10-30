@@ -1,5 +1,5 @@
 /*
-rmsd_calc.h:
+rmsdCalc.h:
     Copyright (C) 2011 Martin Ramiro Gioiosa, FuDePAN
 
     This file is part of the F2F project.
@@ -27,6 +27,21 @@ rmsd_calc.h:
 #include "arithmetic.h"
 #include "types.h"
 
-FloatType rmsd_to(Coord3d* first, const Coord3d* second, const size_t num_coords);
+/**** DEFINED BY USER ************************/
+#define MAX_COORDS            (100)
+#define NUMBER_ITERATIONS     (3)
+/*********************************************/
+
+/**** ERRORS ***********************/
+#ifndef MAX_COORDS
+#error MAX COORDS not defined
+#endif
+
+#ifndef NUMBER_ITERATIONS
+#error NUMBER_ITERATIONS not defined
+#endif
+/*********************************************/
+
+FloatType rmsd_to(Coord3d* first, const Coord3d* second, size_t num_coords);
 
 #endif /* RMSD_CALC_H_ */
