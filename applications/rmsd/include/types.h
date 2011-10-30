@@ -26,7 +26,7 @@ types.h:
 
 #include "arithmetic.h"
 
-typedef struct Coord3d
+typedef struct
 {
     FloatType x,y,z;
 } Coord3d;
