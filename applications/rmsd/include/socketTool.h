@@ -27,6 +27,6 @@ socketTool.h:
 #include <unistd.h>
 
 int read_socket(int sock, char* data, int lenght);
-int write_socket(int sock, char* data, int lenght);
+int write_socket(int sock, const char* data, int lenght);
 
 #endif /* SOCKET_TOOL_H_ */

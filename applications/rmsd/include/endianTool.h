@@ -42,7 +42,7 @@ void endian_buffer_server(BufferServer* buffer, const enum mode_conv mode);
 
 
 #ifdef USE_FLOATS
-#define convert_data()\
+#define CONVERT_DATA(data, lenght)\
     do\
     {\
         const FloatType* end = data + lenght / sizeof(FloatType);\
@@ -55,7 +55,7 @@ void endian_buffer_server(BufferServer* buffer, const enum mode_conv mode);
     }\
     while (0)
 #elif defined(USE_FIXED_POINT)
-#define convert_data()\
+#define CONVERT_DATA(data, lenght)\
     do\
     {\
         const FloatType* end = data + lenght / sizeof(FloatType);\

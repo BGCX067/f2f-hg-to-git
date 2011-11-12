@@ -41,7 +41,7 @@ static void convert(void* num, const enum mode_conv mode)
 
 static void convert_data(FloatType* data, const uint32_t lenght, const enum mode_conv mode)
 {
-    convert_data();
+    CONVERT_DATA(data, lenght);
 }
 
 
