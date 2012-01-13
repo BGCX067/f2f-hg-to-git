@@ -1,0 +1,61 @@
+# Impulse project file saved 12-17-2011 17:59:10
+$Version "3.60.a.8"
+$Option "GenerateMakefile=1"
+$Option "MakeDebug=1"
+$Option "DefaultMakeFile=FPGA.mak"
+$Option "DefaultMakeGenerateTarget=build"
+$Option "DefaultMakeCleanTarget=clean"
+$Option "DefaultMakeExportHWTarget=export_hardware"
+$Option "DefaultMakeExportSWTarget=export_software"
+$Option "HWBuildSrcFiles=FPGA_hw.c "
+$Option "HWBuildIncFiles=FPGA.h arithmetic.h types.h"
+$Option "SWBuildSrcFiles=FPGA_sw.c"
+$Option "SWBuildIncFiles=FPGA.h arithmetic.h types.h"
+$Option "ExeBuildSrcFiles=FPGA_sw.c FPGA_hw.c "
+$Option "ExeBuildIncFiles=FPGA.h arithmetic.h types.h"
+$Option "ExeBuildLibFiles="
+$Option "ExeBuildCCOpts="
+$Option "LaunchUpdateExe=1"
+$Option "LaunchUpdateHwExe=1"
+$Option "LaunchMonitor=0"
+$Option "SimulateExe=FPGA.exe"
+$Option "SimulateHwExe=FPGA.exe"
+$Option "SimulateArgs="
+$Option "SimulateDir="
+$Option "SimulateGenTestbench=0"
+$Option "GenCodeConstProp=0"
+$Option "GenCodeScalarize=1"
+$Option "GenCodeDualClocks=1"
+$Option "GenCodeActiveLowReset=0"
+$Option "GenCodeStdLogic=0"
+$Option "GenCodeCoPort=1"
+$Option "GenCodeFloat=0"
+$Option "GenCodeFloatFast=0"
+$Option "GenCodeFloatDouble=0"
+$Option "GenCodeLibOpts="
+$Option "GenCodeLoopInvariants=0"
+$Option "GenCodeFamily=Xilinx Open Source Linux Virtex-4 APU (VHDL)"
+$Option "GenCodeArchID=xilinx_v4_apu_xosl"
+$Option "GenCodeHWExportDir=export"
+$Option "GenCodeHWTargetDir=hw"
+$Option "GenCodeSWExportDir=export"
+$Option "GenCodeSWTargetDir=sw"
+$Option "GenCodePFlagsOpt="
+$Option "UseExternalMakeWin=0"
+$Files
+($Application "FPGA"
+ ($Sourcefiles
+  ($Module ".\FPGA_hw.c" ""
+  $Module ".\FPGA_sw.c" ""
+  $Module ".\arithmetic.c" ""
+  )
+ $Headerfiles
+  ($Module ".\FPGA.h" ""
+  $Module ".\arithmetic.h" ""
+  $Module ".\types.h" ""
+  )
+ $Projectfiles
+ $Docfiles
+ $Otherfiles
+ )
+)

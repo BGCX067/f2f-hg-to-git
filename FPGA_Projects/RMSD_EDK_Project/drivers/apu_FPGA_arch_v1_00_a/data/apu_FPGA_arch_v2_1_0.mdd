@@ -1,0 +1,15 @@
+OPTION psf_version = 2.1;
+BEGIN driver apu_FPGA_arch
+  OPTION supported_peripherals = (apu_FPGA_arch);
+
+  PARAM name = level, desc = "Driver Level", type = int, default = 0, range = (0, 1);
+
+  BEGIN BLOCK, dep = (level = 0)
+    OPTION copyfiles = all;
+  END BLOCK
+
+  BEGIN BLOCK, dep = (level = 1)
+    OPTION copyfiles = all;
+  END BLOCK
+
+END driver
