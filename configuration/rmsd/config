@@ -26,7 +26,17 @@ option routers 192.168.0.1; # Default gateway of the target
 host fpga 
 {
 #hardware ethernet 02:00:00:00:00:00;
+#hardware ethernet 00:00:00:00:00:00;
+hardware ethernet 08:00:3e:26:15:59;
+fixed-address 192.168.0.91;
+option root-path "/tftpboot/fudepan/rootfs";
+filename "pxelinux.0";
+}
+host fpga_marcos
+{
+#hardware ethernet 02:00:00:00:00:00;
 hardware ethernet 00:00:00:00:00:00;
+#hardware ethernet 08:00:3e:26:15:59;
 fixed-address 192.168.0.91;
 option root-path "/tftpboot/fudepan/rootfs";
 filename "pxelinux.0";
